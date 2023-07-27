@@ -60,5 +60,3 @@ Write up:
 
 - No hot reload right now. When you update the Preact code, you need to reload the browser tab again.
 - Speed optimization is still in question.
-
-

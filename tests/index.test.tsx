@@ -15,10 +15,10 @@ describe("Hello Snapshot", () => {
     const titleElement = tree.find("h1");
     const button = tree.find("button");
 
-    expect(titleElement.text()).toBe("Index: 0");
+    expect(titleElement.text()).toBe("TimePicker: 0");
 
     button.simulate("click");
 
-    expect(titleElement.text()).toBe("Index: 1");
+    expect(titleElement.text()).toBe("TimePicker: 1");
   });
 });

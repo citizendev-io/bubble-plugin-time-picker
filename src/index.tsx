@@ -1,3 +1,4 @@
-import Counter from "./Counter";
+import Counter from "./components/TimePicker";
+import "./style.css";
 
 export { Counter };
