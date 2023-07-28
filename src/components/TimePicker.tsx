@@ -1,22 +1,13 @@
+import { FloatingPortal } from "@floating-ui/react";
+import dayjs from "dayjs";
 import _ from "lodash";
-import { flip } from "@floating-ui/core";
-import {
-  FloatingPortal,
-  offset,
-  useClick,
-  useDismiss,
-  useFloating,
-  useFocus,
-  useInteractions,
-} from "@floating-ui/react";
 import { VNode } from "preact";
 import register from "preact-custom-element";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import React from "react";
-import { useBindHandlersToRef } from "../hooks/useBindHandlersToRef";
-import { useBubbleCanvasRef } from "../hooks/useBubbleCanvasRef";
+import { ErrorBoundary } from "react-error-boundary";
 import { useBubbleState } from "../hooks/useBubbleState";
-import { padTimeNumber, TimeOfDay } from "../utils";
+import { usePickerMenuPopover } from "../hooks/usePickerMenuPopover";
 import PickerMenu from "./PickerMenu";
 import classNames from "./TimePicker.module.css";
 
@@ -36,94 +27,45 @@ interface TimePickerFields {
 
 type TimePickerEvents = "change" | "focused";
 
-type TimePickerProps = Bubble.Element.ElementProps<
+export type TimePickerProps = Bubble.Element.ElementProps<
   TimePickerFields,
   TimePickerStates,
   TimePickerEvents
 >;
 
 export default function TimePicker(props: TimePickerProps): VNode {
-  const [hour, setHour] = useBubbleState(
-    props,
-    "hour",
-    _.clamp(props.properties?.initialHour ?? 0, 0, 24),
-  );
-  const [minute, setMinute] = useBubbleState(
-    props,
-    "minute",
-    _.clamp(props.properties?.initialMinute ?? 0, 0, 60),
-  );
-  const [second, setSecond] = useBubbleState(
-    props,
-    "second",
-    _.clamp(props.properties?.initialSecond ?? 0, 0, 60),
-  );
+  const { properties } = props;
+  const initialHour = _.clamp(properties?.initialHour ?? 0, 0, 24);
+  const initialMinute = _.clamp(properties?.initialMinute ?? 0, 0, 60);
+  const initialSecond = _.clamp(properties?.initialSecond ?? 0, 0, 60);
 
-  const [selectedTime, setSelectedTime] = useState<TimeOfDay>(new TimeOfDay());
+  const [, setHour] = useBubbleState(props, "hour", initialHour);
+  const [, setMinute] = useBubbleState(props, "minute", initialMinute);
+  const [, setSecond] = useBubbleState(props, "second", initialSecond);
+
+  const [selectedTime, setSelectedTime] = useState(dayjs());
+
   useEffect(() => {
-    const initialHour = props.properties?.initialHour ?? 0;
-    const initialMinute = props.properties?.initialMinute ?? 0;
-    const initialSecond = props.properties?.initialSecond ?? 0;
-    const ampm = props.properties?.use12Hour
-      ? initialHour > 12
-        ? "PM"
-        : "AM"
-      : null;
     setSelectedTime(
-      new TimeOfDay(initialHour, initialMinute, initialSecond, ampm),
+      dayjs()
+        .set("hour", initialHour)
+        .set("minute", initialMinute)
+        .set("second", initialSecond),
     );
-  }, [props.properties]);
-  const [isOpen, setIsOpen] = useState(false);
-  const properties = { ...props.properties };
-  useEffect(() => {
-    if (properties.use12Hour) {
-      setSelectedTime(new TimeOfDay(0, 0, 0, "AM"));
-    }
-  }, [properties.use12Hour]);
+  }, [initialHour, initialMinute, initialSecond]);
 
   const commitTime = () => {
     setIsOpen(false);
     if (!selectedTime) {
       return;
     }
-    setHour(selectedTime.hour);
-    setMinute(selectedTime.minute);
-    setSecond(selectedTime.second);
+    const newHour = selectedTime.hour();
+    const newMinute = selectedTime.minute();
+    const newSecond = selectedTime.second();
+    setHour(newHour);
+    setMinute(newMinute);
+    setSecond(newSecond);
   };
-
-  const handleSetOpen = (value: boolean) => {
-    if (value) {
-      setIsOpen(true);
-    } else {
-      commitTime();
-    }
-  };
-
-  const canvasRef = useBubbleCanvasRef(props);
-
-  const { refs, floatingStyles, context } = useFloating({
-    placement: "bottom-start",
-    middleware: [offset({ mainAxis: 20 }), flip()],
-    open: isOpen,
-    onOpenChange: handleSetOpen,
-  });
-
-  useEffect(() => {
-    if (canvasRef.current) {
-      refs.setReference(canvasRef.current);
-    }
-  }, [canvasRef.current]);
-
-  const focus = useFocus(context);
-  const click = useClick(context);
-  const dismiss = useDismiss(context);
-  const { getReferenceProps, getFloatingProps } = useInteractions([
-    click,
-    focus,
-    dismiss,
-  ]);
-
-  useBindHandlersToRef(canvasRef, getReferenceProps);
 
   const timeString = useMemo(() => {
     if (!selectedTime) {
@@ -131,21 +73,30 @@ export default function TimePicker(props: TimePickerProps): VNode {
     }
     const showSeconds = properties?.showSecond ?? false;
     const use12Hour = properties?.use12Hour ?? false;
-    let result = `${padTimeNumber(selectedTime._hour)}:${padTimeNumber(
-      selectedTime._minute,
-    )}`;
+    let format = "";
 
-    if (showSeconds) {
-      result += ":" + padTimeNumber(selectedTime._second);
-    }
     if (use12Hour) {
-      result += " " + selectedTime._ampm || "";
+      if (showSeconds) {
+        format = "hh:mm:ss A";
+      } else {
+        format = "hh:mm A";
+      }
+    } else {
+      if (showSeconds) {
+        format = "HH:mm:ss";
+      } else {
+        format = "HH:mm";
+      }
     }
-    return result;
+
+    return selectedTime.format(format);
   }, [selectedTime, properties?.showSecond, properties?.use12Hour]);
 
+  const { isOpen, refs, floatingStyles, getFloatingProps, setIsOpen } =
+    usePickerMenuPopover({ rootProps: props, onClose: commitTime });
+
   return (
-    <>
+    <ErrorBoundary fallback={<div>Something went wrong</div>}>
       <div className={classNames.input}>
         <div className={classNames.timeString}>{timeString}</div>
       </div>
@@ -167,7 +118,7 @@ export default function TimePicker(props: TimePickerProps): VNode {
           </div>
         </FloatingPortal>
       )}
-    </>
+    </ErrorBoundary>
   );
 }
 

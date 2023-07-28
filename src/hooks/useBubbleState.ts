@@ -9,12 +9,13 @@ export function useBubbleState<
 >(
   props: Bubble.Element.ElementProps<F, S, E>,
   stateName: N,
-  initialValue: V,
-): [V, (a: V) => void] {
+  initialValue?: V,
+): [V | undefined, (a: V) => void] {
   const [state, setState] = useState(initialValue);
 
   useEffect(() => {
     if (props.instance && props.properties) {
+      setState(initialValue);
       props.instance.publishState(stateName, initialValue);
     }
   }, [initialValue, props.instance, props.properties]);

@@ -1,47 +1,41 @@
-import _ from "lodash";
+import dayjs, { Dayjs } from "dayjs";
+import { AMPM } from "./types/date";
 
 export function padTimeNumber(number: number): string {
   return number.toString().padStart(2, "0");
 }
 
-export type AMPM = "AM" | "PM";
-
-export class TimeOfDay {
-  _hour: number = 0;
-  _minute: number = 0;
-  _second: number = 0;
-  _ampm: AMPM | null;
-
-  constructor(
-    hour: number = 0,
-    minute: number = 0,
-    second: number = 0,
-    ampm: AMPM | null = null,
-  ) {
-    this._hour = _.clamp(hour, 0, 24);
-    this._minute = _.clamp(minute, 0, 60);
-    this._second = _.clamp(second, 0, 60);
-    this._ampm = ampm;
+export function timeFromComponent(
+  hour: number,
+  minute: number,
+  second: number,
+  ampm: AMPM | null,
+): Dayjs {
+  // 12:00PM = 12:00
+  // 12:00AM = 00:00
+  if (ampm === "PM" && hour < 12) {
+    hour += 12;
+  } else if (ampm === "AM" && hour === 12) {
+    hour = 0;
   }
 
-  get hour() {
-    if (this._ampm === "AM") {
-      if (this._hour === 12) {
-        return 0;
-      }
-      return this._hour;
-    } else if (this._ampm === "PM") {
-      if (this._hour === 12) {
-        return 12;
-      }
-      return this._hour + 12;
-    }
-    return this._hour;
-  }
-  get minute() {
-    return this._minute;
-  }
-  get second() {
-    return this._second;
-  }
+  return dayjs().set("hour", hour).set("minute", minute).set("second", second);
+}
+
+export function componentFromTime(
+  time: Dayjs,
+  use12Hour: boolean,
+): { hour: number; minute: number; second: number; ampm: AMPM | null } {
+  const hour = use12Hour ? parseInt(time.format("h")) || 0 : time.hour();
+  const minute = time.minute();
+  const second = time.second();
+  const ampm = use12Hour
+    ? (time.format("A").toUpperCase() as AMPM) ?? "AM"
+    : null;
+  return {
+    hour,
+    minute,
+    second,
+    ampm,
+  };
 }

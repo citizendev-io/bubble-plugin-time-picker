@@ -9,7 +9,7 @@ interface ChoiceListProps<T> {
   onChange: (val: T) => void;
   formatChoice?: (val: T) => string;
 }
-function calculateMiddleLine(element: HTMLElement) {
+function calculateMiddleLine(element: Element) {
   const boundingRect = element.getBoundingClientRect();
   return (boundingRect.bottom - boundingRect.top) / 2 + boundingRect.top;
 }
@@ -27,15 +27,28 @@ function ChoiceList<T>({
       return;
     }
     const containerMiddleLine = calculateMiddleLine(container);
-
-    [...container.children].forEach(function (ele: HTMLElement, index: number) {
+    let minDist = Infinity;
+    let minIndex = 0;
+    let minEle: Element | null = null;
+    const children = [...container.children];
+    for (let index = 0; index < children.length; ++index) {
+      const ele = children[index];
       const elementMiddleLine = calculateMiddleLine(ele);
-      if (Math.abs(elementMiddleLine - containerMiddleLine) > 10) {
-        return;
+      const dist = Math.abs(elementMiddleLine - containerMiddleLine);
+      if (dist < minDist) {
+        minDist = dist;
+        minIndex = index;
+        minEle = ele;
       }
-      onChange(choices[index]);
+    }
+    minEle?.scrollIntoView({
+      inline: "center",
+      behavior: "smooth",
+      block: "nearest",
     });
+    onChange(choices[minIndex]);
   };
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) {
@@ -56,6 +69,7 @@ function ChoiceList<T>({
       container.removeEventListener("scroll", scrollHandler);
     };
   }, []);
+
   return (
     <ul className={classNames.numberColumn} ref={containerRef}>
       {choices.map((choice) => (

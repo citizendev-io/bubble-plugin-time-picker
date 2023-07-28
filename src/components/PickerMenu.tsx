@@ -1,36 +1,44 @@
+import { Dayjs } from "dayjs";
 import _ from "lodash";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { AMPM, padTimeNumber, TimeOfDay } from "../utils";
+import { AMPM } from "../types/date";
+import { componentFromTime, padTimeNumber, timeFromComponent } from "../utils";
 import ChoiceList from "./ChoiceList";
 import classNames from "./PickerMenu.module.css";
 
 interface PickerMenuProps {
   showSecond?: boolean;
   use12Hours?: boolean;
-  time: TimeOfDay;
-  onChange: (time: TimeOfDay) => void;
+  time: Dayjs;
+  onChange: (time: Dayjs) => void;
   onConfirm?: () => void;
 }
 
 export default function PickerMenu({
   time,
   onChange,
-  onConfirm,
   use12Hours,
   showSecond,
 }: PickerMenuProps) {
-  const [hour, setHour] = useState(time._hour);
-  const [minute, setMinute] = useState(time._minute);
-  const [second, setSecond] = useState(time._second);
-  const [ampm, setAMPM] = useState<AMPM>(time._ampm ?? "AM");
+  const {
+    hour: initialHour,
+    second: initialSecond,
+    minute: initialMinute,
+    ampm: initialAMPM,
+  } = componentFromTime(time, !!use12Hours);
+  const [hour, setHour] = useState(initialHour);
+  const [minute, setMinute] = useState(initialMinute);
+  const [second, setSecond] = useState(initialSecond);
+  const [ampm, setAMPM] = useState(initialAMPM);
 
   useEffect(() => {
-    onChange(new TimeOfDay(hour, minute, second, ampm));
+    const time = timeFromComponent(hour, minute, second, ampm);
+    onChange(time);
   }, [hour, minute, second, ampm]);
 
   const hourRange = useMemo(() => {
     if (use12Hours) {
-      return _.range(1, 13);
+      return [12, ..._.range(1, 12)];
     }
     return _.range(0, 24);
   }, [use12Hours]);
@@ -61,7 +69,7 @@ export default function PickerMenu({
         {use12Hours && (
           <ChoiceList<AMPM>
             choices={["AM", "PM"]}
-            value={ampm}
+            value={ampm!}
             onChange={setAMPM}
           />
         )}

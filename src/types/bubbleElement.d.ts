@@ -21,7 +21,7 @@ export namespace Element {
   };
   export type Instance<StateMap, EventType extends string> = {
     canvas: JQuery;
-    publishState: (name: keyof StateMap, value: StateMap[typeof name]) => void;
+    publishState: (name: keyof StateMap, value?: StateMap[typeof name]) => void;
     triggerEvent: (name: EventType, callback: (err) => void) => void;
     data: {};
   };

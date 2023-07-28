@@ -2,7 +2,7 @@
   "name": "bubble-plugin-time-picker",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"vite build --watch\" \"serve dist --cors\"",
+    "dev": "concurrently \"vite build --config vite.config-dev.ts --watch\" \"serve dist --cors\"",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -12,7 +12,8 @@
     "dayjs": "^1.11.9",
     "lodash": "^4.17.21",
     "preact": "^10.13.1",
-    "preact-custom-element": "^4.2.1"
+    "preact-custom-element": "^4.2.1",
+    "react-error-boundary": "^4.0.10"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.5.0",
