@@ -1,0 +1,10 @@
+function(instance, properties) {
+    setTimeout(() => {
+        jQuery("html").height("100%");
+        jQuery("body").height("100%").css({overflow: "hidden"});
+
+        const demoBody = "<div>{{componentName}}</div>"
+        instance.canvas.html(demoBody);
+    }, 1000);
+
+}

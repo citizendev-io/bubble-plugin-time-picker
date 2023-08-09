@@ -1,0 +1,13 @@
+function(instance, properties, context) {
+    if (!instance.data.element) {
+        instance.data.element = document.createElement("{{ componentName }}");
+        instance.canvas.append(instance.data.element);
+    }
+
+    setTimeout(() => {
+        instance.data.element.properties = properties;
+        instance.data.element.instance = instance;
+	    instance.data.element.context = context;
+    }, 100);
+
+}

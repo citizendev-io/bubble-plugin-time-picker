@@ -1,13 +1,13 @@
 import { FloatingPortal } from "@floating-ui/react";
 import dayjs from "dayjs";
-import _ from "lodash";
-import { VNode } from "preact";
+import * as _ from "lodash-es";
 import register from "preact-custom-element";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import React from "react";
-import { ErrorBoundary } from "react-error-boundary";
 import { useBubbleState } from "../hooks/useBubbleState";
+import useDefineBubbleAction from "../hooks/useDefineBubbleAction";
 import { usePickerMenuPopover } from "../hooks/usePickerMenuPopover";
+import { nullClamp } from "../utils";
 import PickerMenu from "./PickerMenu";
 import classNames from "./TimePicker.module.css";
 
@@ -18,11 +18,14 @@ interface TimePickerStates {
 }
 
 interface TimePickerFields {
+  placeholder: string;
   use12Hour: boolean;
   showSecond: boolean;
   initialHour: number;
   initialMinute: number;
   initialSecond: number;
+  minuteStep: number;
+  secondStep: number;
 }
 
 type TimePickerEvents = "change" | "focused";
@@ -33,26 +36,42 @@ export type TimePickerProps = Bubble.Element.ElementProps<
   TimePickerEvents
 >;
 
-export default function TimePicker(props: TimePickerProps): VNode {
+const TimePicker: React.FC<TimePickerProps> = (props) => {
   const { properties } = props;
-  const initialHour = _.clamp(properties?.initialHour ?? 0, 0, 24);
-  const initialMinute = _.clamp(properties?.initialMinute ?? 0, 0, 60);
-  const initialSecond = _.clamp(properties?.initialSecond ?? 0, 0, 60);
+
+  const initialHour = nullClamp(properties?.initialHour, 0, 24);
+  const initialMinute = nullClamp(properties?.initialMinute, 0, 60);
+  const initialSecond = nullClamp(properties?.initialSecond ?? 0, 0, 60);
 
   const [, setHour] = useBubbleState(props, "hour", initialHour);
   const [, setMinute] = useBubbleState(props, "minute", initialMinute);
   const [, setSecond] = useBubbleState(props, "second", initialSecond);
 
-  const [selectedTime, setSelectedTime] = useState(dayjs());
+  const [selectedTime, setSelectedTime] = useState<dayjs.Dayjs>();
 
   useEffect(() => {
-    setSelectedTime(
-      dayjs()
-        .set("hour", initialHour)
-        .set("minute", initialMinute)
-        .set("second", initialSecond),
-    );
+    if (!_.isNil(initialHour) && !_.isNil(initialMinute)) {
+      setSelectedTime(
+        dayjs()
+          .set("hour", initialHour!)
+          .set("minute", initialMinute!)
+          .set("second", initialSecond ?? 0),
+      );
+    }
   }, [initialHour, initialMinute, initialSecond]);
+
+  useDefineBubbleAction<{ hour: number; minute: number; second: number }>(
+    props,
+    "setTime",
+    (actionProperties) => {
+      const newTime = dayjs()
+        .set("hour", actionProperties.hour)
+        .set("minute", actionProperties.minute)
+        .set("second", actionProperties.second ?? 0);
+      setSelectedTime(newTime);
+      commitTime();
+    },
+  );
 
   const commitTime = () => {
     setIsOpen(false);
@@ -73,7 +92,7 @@ export default function TimePicker(props: TimePickerProps): VNode {
     }
     const showSeconds = properties?.showSecond ?? false;
     const use12Hour = properties?.use12Hour ?? false;
-    let format = "";
+    let format;
 
     if (use12Hour) {
       if (showSeconds) {
@@ -96,9 +115,11 @@ export default function TimePicker(props: TimePickerProps): VNode {
     usePickerMenuPopover({ rootProps: props, onClose: commitTime });
 
   return (
-    <ErrorBoundary fallback={<div>Something went wrong</div>}>
+    <>
       <div className={classNames.input}>
-        <div className={classNames.timeString}>{timeString}</div>
+        <div className={classNames.timeString}>
+          {timeString || properties?.placeholder}
+        </div>
       </div>
       {isOpen && (
         <FloatingPortal>
@@ -109,7 +130,9 @@ export default function TimePicker(props: TimePickerProps): VNode {
             {...getFloatingProps()}
           >
             <PickerMenu
-              time={selectedTime}
+              minuteStep={properties?.minuteStep}
+              secondStep={properties?.secondStep}
+              time={selectedTime ?? dayjs.unix(0)}
               use12Hours={properties?.use12Hour}
               showSecond={properties?.showSecond}
               onChange={setSelectedTime}
@@ -118,9 +141,11 @@ export default function TimePicker(props: TimePickerProps): VNode {
           </div>
         </FloatingPortal>
       )}
-    </ErrorBoundary>
+    </>
   );
-}
+};
+
+export default TimePicker;
 
 register(TimePicker, "custom-time-picker", [
   "properties",

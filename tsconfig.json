@@ -3,8 +3,8 @@
     "target": "ES2020",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "es6",
+    "moduleResolution": "node",
     "noEmit": true,
     "allowJs": true,
     "checkJs": true,
@@ -14,6 +14,12 @@
     "paths": {
       "react": ["./node_modules/preact/compat/"],
       "react-dom": ["./node_modules/preact/compat/"]
+    }
+  },
+  "ts-node": {
+    "esm": true,
+    "compilerOptions": {
+      "module": "CommonJS"
     }
   },
   "include": ["node_modules/vite/client.d.ts", "**/*"]

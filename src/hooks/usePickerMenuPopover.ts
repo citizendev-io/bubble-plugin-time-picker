@@ -4,11 +4,10 @@ import {
   useClick,
   useDismiss,
   useFloating,
-  useFocus,
   useInteractions,
 } from "@floating-ui/react";
 import { useEffect, useState } from "preact/hooks";
-import { TimePickerProps } from "../components/TimePicker";
+import { TimePickerProps } from "../TimePicker/TimePicker";
 import { useBindHandlersToRef } from "./useBindHandlersToRef";
 import { useBubbleCanvasRef } from "./useBubbleCanvasRef";
 
@@ -47,12 +46,10 @@ export const usePickerMenuPopover = ({
     }
   }, [canvasRef.current]);
 
-  const focus = useFocus(context);
   const click = useClick(context);
   const dismiss = useDismiss(context);
   const { getReferenceProps, getFloatingProps } = useInteractions([
     click,
-    focus,
     dismiss,
   ]);
 

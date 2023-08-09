@@ -1,5 +1,5 @@
 import { Dayjs } from "dayjs";
-import _ from "lodash";
+import * as _ from "lodash-es";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { AMPM } from "../types/date";
 import { componentFromTime, padTimeNumber, timeFromComponent } from "../utils";
@@ -12,6 +12,8 @@ interface PickerMenuProps {
   time: Dayjs;
   onChange: (time: Dayjs) => void;
   onConfirm?: () => void;
+  minuteStep?: number;
+  secondStep?: number;
 }
 
 export default function PickerMenu({
@@ -19,6 +21,8 @@ export default function PickerMenu({
   onChange,
   use12Hours,
   showSecond,
+  minuteStep,
+  secondStep,
 }: PickerMenuProps) {
   const {
     hour: initialHour,
@@ -53,14 +57,14 @@ export default function PickerMenu({
           formatChoice={padTimeNumber}
         />
         <ChoiceList
-          choices={_.range(0, 60)}
+          choices={_.range(0, 60, minuteStep ?? 1)}
           value={minute}
           onChange={setMinute}
           formatChoice={padTimeNumber}
         />
         {showSecond && (
           <ChoiceList
-            choices={_.range(0, 60)}
+            choices={_.range(0, 60, secondStep ?? 1)}
             value={second}
             onChange={setSecond}
             formatChoice={padTimeNumber}

@@ -1,5 +1,5 @@
 import c from "classnames";
-import _ from "lodash";
+import * as _ from "lodash-es";
 import { useEffect, useRef } from "preact/hooks";
 import classNames from "./PickerMenu.module.css";
 

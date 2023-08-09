@@ -1,0 +1,35 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/preact/10.16.0/preact.umd.min.js" integrity="sha512-uXY6afHnMLQq3EwkH28iie53NdWEV1C0G8CRPwn6kGC7RhLDLm/UX5KKecAQXY7P97eAXdBRrn5O7iCe6Eja4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/preact/10.16.0/hooks.umd.min.js" integrity="sha512-yZ7W+CM3bcfmwt6czyUuMm3mDOg/wlWZK0u4iZX6auLQt/FqYihYyeRm30iRP9OvaWUnD7L4wImFVthMr543dw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/preact/10.16.0/compat.umd.min.js" integrity="sha512-FjOudTeOfFDwxLlc7JZZ93zmMtLUonmw87QraysEFGYAA+g104GyhBauJXrJeRIvYFO9inyJDi2BNcUkiQNzzA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/preact-custom-element/4.2.1/preact-custom-element.umd.js" integrity="sha512-+m0aegDn7P0feOtkoPwmTwfRZvj8v2D4T64q6uH3VZ3kjJwsJqFMI/qcuKuz6TTWzx8i3YggSQBbWMS7rOiZfg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    function loadJS(url, module = false) {
+        let scriptEle = document.createElement("script");
+        scriptEle.setAttribute("src", url);
+        scriptEle.setAttribute("type", module ? "module" : "text/javascript" );
+        document.head.appendChild(scriptEle);
+    }
+    function loadCSS(url) {
+        let link = document.createElement("link");
+        link.rel  = 'stylesheet';
+	    link.type = 'text/css';
+    	link.href = url;
+	    link.media = 'all';
+        document.head.appendChild(link);
+    }
+    function loadCSSString(css) {
+        let style = document.createElement("style");
+        style.innerText = css;
+        document.head.appendChild(style);
+    }
+
+    window.devServerURL = "_*_DEV_SERVER_URL_*_";
+    if (!!window.devServerURL) {
+        loadJS(window.devServerURL + "/index.umd.js");
+        loadCSS(window.devServerURL + "/style.css");
+    } else {
+        loadCSSString(`{{ bundle.css }}`);
+        {{ bundle.js }}
+    }
+
+</script>
